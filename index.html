@@ -35,24 +35,12 @@
 </style>
 </head>
 <body>
-<div class="widget">
-  <div class="stage" id="stage" role="button" tabindex="0" aria-label="くりまんじゅうをクリックして反応を見る">
-    <div class="bubble" id="bubble" aria-live="polite"></div>
-    <img id="mascot" src="assets/normal.gif" alt="お酒を飲むくりまんじゅう" draggable="false">
-  </div>
-  <div class="hint">くりまんじゅうをクリックしてみてね</div>
-</div>
 <script>
 (() => {
   const mascot = document.getElementById('mascot');
   const stage = document.getElementById('stage');
   const bubble = document.getElementById('bubble');
   const normal = 'assets/normal.gif';
-  const reactions = [
-    { file: 'assets/drink.gif', duration: 4200, lines: ['ぷは〜！', 'くぅ〜、しみる…', 'やっぱりこれだな'] },
-    { file: 'assets/hangover.gif', duration: 6000, lines: ['……飲みすぎた', '今日はもう無理……', '水……水をくれ……'] },
-    { file: 'assets/charge.gif', duration: 4700, lines: ['ためている……！', 'いくぞ……', '必殺……！'] }
-  ];
   let timer = null;
   let bubbleTimer = null;
   let busy = false;
