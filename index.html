@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>くりまんじゅうマスコット</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .widget {
+    width: 100%; min-height: 176px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+    padding: 4px; overflow: hidden; background: transparent;
+  }
+  .stage {
+    position: relative; width: min(100%, 260px); min-height: 148px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
+  }
+  .stage:focus-visible { outline: 2px dashed #8c6b50; outline-offset: 2px; border-radius: 12px; }
+  #mascot { display: block; width: 171px; height: 139px; max-width: 100%; object-fit: contain;
+    image-rendering: auto; user-select: none; -webkit-user-drag: none; }
+  .bubble {
+    position: absolute; left: 50%; top: 1px; transform: translateX(-50%) translateY(4px);
+    max-width: 95%; padding: 5px 10px; border-radius: 14px;
+    background: rgba(255,255,255,.94); color: #4b3b30; font-size: 12px; line-height: 1.35;
+    box-shadow: 0 2px 8px rgba(65,42,22,.12); white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+  }
+  .bubble.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .hint { color: #8a7b6e; font-size: 10px; line-height: 1.2; opacity: .85; }
+  @media (prefers-reduced-motion: reduce) { .bubble { transition: none; } }
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="stage" id="stage" role="button" tabindex="0" aria-label="くりまんじゅうをクリックして反応を見る">
+    <div class="bubble" id="bubble" aria-live="polite"></div>
+    <img id="mascot" src="assets/normal.gif" alt="お酒を飲むくりまんじゅう" draggable="false">
+  </div>
+  <div class="hint">くりまんじゅうをクリックしてみてね</div>
+</div>
+<script>
+(() => {
+  const mascot = document.getElementById('mascot');
+  const stage = document.getElementById('stage');
+  const bubble = document.getElementById('bubble');
+  const normal = 'assets/normal.gif';
+  const reactions = [
+    { file: 'assets/drink.gif', duration: 4200, lines: ['ぷは〜！', 'くぅ〜、しみる…', 'やっぱりこれだな'] },
+    { file: 'assets/hangover.gif', duration: 6000, lines: ['……飲みすぎた', '今日はもう無理……', '水……水をくれ……'] },
+    { file: 'assets/charge.gif', duration: 4700, lines: ['ためている……！', 'いくぞ……', '必殺……！'] }
+  ];
+  let timer = null;
+  let bubbleTimer = null;
+  let busy = false;
+  function showLine(line) {
+    bubble.textContent = line;
+    bubble.classList.add('show');
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(() => bubble.classList.remove('show'), 1700);
+  }
+  function replay(src) {
+    // A query string forces the browser to restart the animated GIF from its first frame.
+    mascot.src = src + '?play=' + Date.now();
+  }
+  function react() {
+    if (busy) return;
+    busy = true;
+    const reaction = reactions[Math.floor(Math.random() * reactions.length)];
+    replay(reaction.file);
+    showLine(reaction.lines[Math.floor(Math.random() * reaction.lines.length)]);
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      replay(normal);
+      busy = false;
+    }, reaction.duration);
+  }
+  stage.addEventListener('click', react);
+  stage.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      react();
+    }
+  });
+})();
+</script>
+</body>
+</html>
