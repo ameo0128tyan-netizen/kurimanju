@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gif</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+  }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #gif {
+    max-width: 100%;
+    max-height: 100%;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+</style>
+</head>
+<body>
+<img id="gif" alt="">
+
+<script>
+  const NORMAL = 'normal.gif';
+  const CLICK_GIFS = ['charge.gif', 'drink.gif', 'hangover.gif'];
+
+  const img = document.getElementById('gif');
+  const assets = {};
+  let busy = false;
+
+  // GIFの全フレームの表示時間を合計して再生時間(ms)を求める
+  function gifDuration(buffer) {
+    const b = new Uint8Array(buffer);
+    let total = 0;
+    for (let i = 0; i < b.length - 5; i++) {
+      if (b[i] === 0x21 && b[i + 1] === 0xF9 && b[i + 2] === 0x04) {
+        let delay = b[i + 4] | (b[i + 5] << 8); // 1/100秒単位
+        if (delay <= 1) delay = 10;             // ブラウザの挙動に合わせる
+        total += delay * 10;
+      }
+    }
+    return total || 2000; // 取得できなかった場合は2秒
+  }
+
+  async function load(name) {
+    const res = await fetch(name);
+    const buf = await res.arrayBuffer();
+    assets[name] = {
+      blob: new Blob([buf], { type: 'image/gif' }),
+      duration: gifDuration(buf)
+    };
+  }
+
+  // 毎回新しいURLを作ることで、GIFを必ず最初から再生する
+  function play(name) {
+    const old = img.src;
+    img.src = URL.createObjectURL(assets[name].blob);
+    if (old.startsWith('blob:')) URL.revokeObjectURL(old);
+  }
+
+  img.addEventListener('click', () => {
+    if (busy) return; // 再生中のクリックは無視
+    busy = true;
+    const name = CLICK_GIFS[Math.floor(Math.random() * CLICK_GIFS.length)];
+    play(name);
+    setTimeout(() => {
+      play(NORMAL);
+      busy = false;
+    }, assets[name].duration);
+  });
+
+  (async () => {
+    await Promise.all([NORMAL, ...CLICK_GIFS].map(load));
+    play(NORMAL);
+  })();
+</script>
+</body>
+</html>
